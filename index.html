@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>扭蛋抽獎機</title>
+<meta name="description" content="講座現場用的扭蛋抽獎機。貼上名單、轉把手，名單只留在你的瀏覽器裡。">
+<meta name="theme-color" content="#FFF1CF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23FFF8E8' stroke='%232B2A4C' stroke-width='5'/%3E%3Cpath d='M4 32a28 28 0 0 1 56 0Z' fill='%23FF5A5F' stroke='%232B2A4C' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <h1 class="logo"><span class="logo-dot" aria-hidden="true"></span>扭蛋抽獎機</h1>
+    <div class="tools">
+      <button type="button" class="btn tool" id="btnFocus" aria-pressed="false" aria-label="專注模式：隱藏名單與紀錄，只留扭蛋機">專注</button>
+      <button type="button" class="btn tool" id="btnSound" aria-pressed="false" aria-label="音效開啟中，按一下靜音">音效 開</button>
+      <button type="button" class="btn tool" id="btnFull" aria-label="進入全螢幕">全螢幕</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage" aria-label="扭蛋機">
+      <div class="machine-wrap">
+        <svg id="machine" viewBox="-10 0 420 600" role="img" aria-label="卡通扭蛋機：透明圓頂裡有一堆彩色膠囊，下方有把手和出口">
+          <defs>
+            <clipPath id="domeClip"><circle cx="200" cy="165" r="122"/></clipPath>
+          </defs>
+          <ellipse cx="200" cy="582" rx="170" ry="13" fill="#2B2A4C" opacity=".16"/>
+          <!-- feet -->
+          <rect x="80" y="548" width="76" height="36" rx="14" fill="#FFC93C" class="ink"/>
+          <rect x="244" y="548" width="76" height="36" rx="14" fill="#FFC93C" class="ink"/>
+          <!-- cap -->
+          <rect x="170" y="14" width="60" height="40" rx="16" fill="#FFC93C" class="ink"/>
+          <!-- dome -->
+          <circle cx="200" cy="165" r="128" fill="#D9F4FF" opacity=".8"/>
+          <g clip-path="url(#domeClip)"><g id="caps"></g></g>
+          <circle cx="200" cy="165" r="128" fill="none" class="ink"/>
+          <path d="M108 138A98 98 0 0 1 160 66" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".9"/>
+          <circle cx="100" cy="170" r="6.5" fill="#fff" opacity=".9"/>
+          <!-- body -->
+          <rect x="38" y="280" width="324" height="42" rx="21" fill="#FFC93C" class="ink"/>
+          <rect x="52" y="312" width="296" height="252" rx="42" fill="#FF5A5F" class="ink"/>
+          <rect x="318" y="338" width="16" height="186" rx="8" fill="#E8434A"/>
+          <rect x="68" y="338" width="14" height="150" rx="7" fill="#fff" opacity=".4"/>
+          <g class="rim-dots" fill="#fff" opacity=".85"><circle cx="78" cy="301" r="4.5"/><circle cx="122" cy="301" r="4.5"/><circle cx="278" cy="301" r="4.5"/><circle cx="322" cy="301" r="4.5"/></g>
+          <!-- sign -->
+          <rect x="106" y="334" width="188" height="40" rx="20" fill="#FFF8E8" class="ink thin"/>
+          <text x="200" y="363" text-anchor="middle" class="sign">好運扭蛋</text>
+          <!-- knob -->
+          <g id="knob" aria-hidden="true">
+            <circle cx="200" cy="432" r="52" fill="#FFC93C" class="ink"/>
+            <circle cx="200" cy="432" r="39" fill="#FFF8E8" class="ink thin"/>
+            <g transform="translate(200 432)"><g id="crank">
+              <rect x="-35" y="-11" width="70" height="22" rx="11" fill="#FF8FB1" class="ink thin"/>
+              <circle cx="-32" r="15" fill="#FFC93C" class="ink thin"/>
+              <circle cx="32" r="15" fill="#FFC93C" class="ink thin"/>
+              <circle r="9" fill="#2B2A4C"/>
+            </g></g>
+          </g>
+          <!-- exit -->
+          <rect id="exitDoor" x="130" y="490" width="140" height="64" rx="24" fill="#2B2A4C" class="ink"/>
+          <g id="flap"><rect x="138" y="497" width="124" height="48" rx="16" fill="#2EC4B6" class="ink thin"/><path d="M160 514H240M160 528H240" stroke="#2B2A4C" stroke-width="4" stroke-linecap="round" opacity=".45"/></g>
+        </svg>
+      </div>
+
+      <p class="remain" id="remain" aria-live="polite">剩 0 人</p>
+      <button type="button" class="btn draw" id="btnDraw" aria-label="抽獎：抽出下一位">抽一顆！</button>
+      <p class="hint" id="hint" role="status"></p>
+    </section>
+
+    <section class="panel list" aria-labelledby="hList">
+      <h2 id="hList">名單</h2>
+      <label for="names" class="sr-only">貼上名單，一行一個名字</label>
+      <textarea id="names" placeholder="一行一個名字，直接貼上就好。&#10;空白行會自動略過。" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <p class="warn" id="dupe" role="status" hidden></p>
+      <label class="check"><input type="checkbox" id="repeat"><span>可重複中獎</span></label>
+      <button type="button" class="btn small danger" id="btnClearAll" aria-label="清除全部：名單與中獎紀錄">清除全部</button>
+    </section>
+
+    <section class="panel log" aria-labelledby="hLog">
+      <div class="panel-head">
+        <h2 id="hLog">中獎紀錄</h2>
+        <button type="button" class="btn small" id="btnClearLog" aria-label="清除中獎紀錄">清除紀錄</button>
+      </div>
+      <ol id="winners" class="winners" aria-live="polite"></ol>
+      <p class="empty" id="logEmpty">還沒有人中獎。</p>
+    </section>
+  </main>
+</div>
+
+<div class="reveal" id="reveal" hidden>
+  <div class="reveal-backdrop" id="backdrop"></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div class="rcap" id="rcap" aria-hidden="true">
+    <div class="rcap-inner" id="rcapInner">
+      <svg viewBox="-62 -62 124 124">
+        <g id="rbot"><path d="M-50 0A50 50 0 0 0 50 0Z" class="rbot-fill"/><path d="M-42 12A44 44 0 0 0 -18 38" class="shine"/></g>
+        <g id="rtop"><path d="M-50 0A50 50 0 0 1 50 0Z" class="rtop-fill"/><path d="M-38 -14A42 42 0 0 1 -14 -38" class="shine"/></g>
+      </svg>
+    </div>
+  </div>
+  <div class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardName" hidden>
+    <p class="card-label" id="cardLabel">第 1 位</p>
+    <p class="card-name" id="cardName"></p>
+    <button type="button" class="btn draw next" id="btnNext">好，繼續</button>
+  </div>
+  <p class="skip" id="skipHint">點一下或按空白鍵，略過動畫</p>
+</div>
+<div class="sr-only" id="live" role="status" aria-live="assertive"></div>
+
+<script src="raffle.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
